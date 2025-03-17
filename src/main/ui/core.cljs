@@ -9,6 +9,7 @@
             [ui.render-comp.discourse-suggestions :refer [llm-dg-suggestions-main]]
             [ui.components.cytoscape :refer [cytoscape-main]]
             [reagent.dom :as rd]
+            [ui.components.discourse-graph-this-page :refer [run-discourse-graph-this-page]]
             [cljs.core.async :as async :refer [<! >! go chan put! take! timeout]]
             [cljs.core.async.interop :as asy :refer [<p!]]))
 
@@ -65,6 +66,15 @@
                        (p "append settings container to body")
                        (.appendChild body settings-container)
                        (rd/render [discourse-graph-this-page-settings dialog-open?] settings-container)))}))))
+
+
+(defn invoke-dg-this-page [] 
+    (p "run dg this page")
+    (j/call-in js/window [:roamAlphaAPI :ui :commandPalette :addCommand]
+      (clj->js 
+        {:label "DGAI: Discourse graph this page"
+         :callback (fn [e]
+                     (run-discourse-graph-this-page))})))
 
 
 (defn extract-last-substring [s]
@@ -144,5 +154,6 @@
   ;; a way to add the chat-llm button
  (add-new-option-to-context-menu)
  (invoke-settings-via-command-palette)
+ (invoke-dg-this-page)
  #_(bottom-bar-main)
  (p "Finished initial setup."))

@@ -3,7 +3,8 @@
             [cljs.core.async :as async :refer [<! >! go chan put! take! timeout]]
             [clojure.string :as str]
             [ui.actions.dg-this-page :refer [create-bare-struct get-llm-response ask-llm prepare-prompt-with-plain-context]]
-            [ui.utils :refer [extract-from-code-block uid->eid button-with-tooltip p title->uid q block-has-child-with-str? get-child-with-str get-child-of-child-with-str-on-page get-open-page-uid create-struct gen-new-uid]]
+            [reagent.core :as r]
+            [ui.utils :refer [extract-from-code-block pull-deep-block-data extract-data uid->eid button-with-tooltip p title->uid q block-has-child-with-str? get-child-with-str get-child-of-child-with-str-on-page get-open-page-uid create-struct gen-new-uid]]
             [ui.extract-data.create-prompts :refer [manual-prompt-guide]]
             ["@blueprintjs/core" :as bp :refer [Button ButtonGroup]]))
 
@@ -179,3 +180,75 @@
                                              active?
                                              @ref-relevant-prompt)))))))}
         "Discourse graph this page"]]]]))
+
+
+
+(defn run-discourse-graph-this-page []
+  (let [block-uid                (block-has-child-with-str? (title->uid "LLM chat settings") "Quick action buttons")
+        discourse-graph-page-uid (:uid (get-child-with-str block-uid "Discourse graph this page"))
+        data                     (-> discourse-graph-page-uid
+                                       (pull-deep-block-data)
+                                       extract-data)
+        default-model            (r/atom (:model data))
+        default-temp             (r/atom (:temperature data))
+        default-max-tokens       (r/atom (:max-tokens data))
+        get-linked-refs?         (r/atom (:get-linked-refs? data))
+        extract-query-pages?     (r/atom (:extract-query-pages? data))
+        extract-query-pages-ref? (r/atom (:extract-query-pages-ref? data))
+        active?                  (r/atom false)
+        pre-prompt               (r/atom (:pre-prompt  data))
+        ref-relevant-prompt      (r/atom (:ref-relevant-notes-prompt  data))]
+       (p "clicked discourse graph this page")
+       (go
+         (let [suggestion-uid (gen-new-uid)
+               open-page-uid  (<p! (get-open-page-uid))
+               loading-message-uid (gen-new-uid)
+               dgp-block-uid  (block-has-child-with-str? (title->uid "LLM chat settings") "Quick action buttons")
+               dgp-discourse-graph-page-uid (:uid (get-child-with-str dgp-block-uid "Discourse graph this page"))
+               model-settings  {:model default-model
+                                :temperature default-temp
+                                :max-tokens default-max-tokens
+                                :get-linked-refs? get-linked-refs?
+                                :extract-query-pages? extract-query-pages?
+                                :extract-query-pages-ref? extract-query-pages-ref?}]
+           (p "1 suggestion uid" suggestion-uid "dgp-block-uid" dgp-block-uid "dgp-discourse-graph-page-uid" dgp-discourse-graph-page-uid)
+           (p "2 pre-prompt" (some? @pre-prompt))
+           (when (not (some? @ref-relevant-prompt))
+             (create-ref-relevent-prompt))
+           (if (not (some? @pre-prompt))
+             (do
+               (<! (create-bare-struct open-page-uid suggestion-uid loading-message-uid
+                                       "Setting this up: This graph does not have a pre-prompt yet, setting up the prompt now..."))
+               (reset! pre-prompt (<! (manual-prompt-guide dgp-discourse-graph-page-uid loading-message-uid)))
+               (<! (get-suggestions-from-llm
+                     model-settings
+                     block-uid
+                     suggestion-uid
+                     active?
+                     @pre-prompt))
+               (<! (get-refs-for-all-suggestions
+                     open-page-uid
+                     suggestion-uid
+                     model-settings
+                     active?
+                     ref-relevant-prompt)))
+             (do
+               (p "3 pre prompt exists" pre-prompt)
+               (<! (create-bare-struct
+                     open-page-uid
+                     suggestion-uid
+                     loading-message-uid
+                     "8 Asking llm please wait..."))
+               (<! (get-suggestions-from-llm
+                     model-settings
+                     block-uid
+                     suggestion-uid
+                     active?
+                     @pre-prompt))
+               (p "14 get refs for all")
+               (<! (get-refs-for-all-suggestions
+                     open-page-uid
+                     suggestion-uid
+                     model-settings
+                     active?
+                     @ref-relevant-prompt))))))))
