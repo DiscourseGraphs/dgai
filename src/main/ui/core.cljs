@@ -5,7 +5,7 @@
             ["@blueprintjs/core" :as bp :refer [Button InputGroup Card]]
             [ui.render-comp.chat :as rc :refer [main]]
             [ui.render-comp.bottom-bar :refer [bottom-bar-main]]
-            [ui.utils :refer [p chat-ui-with-context-struct create-struct gen-new-uid get-block-parent-with-order common-chat-struct q llm-chat-settings-page-struct]]
+            [ui.utils :refer [p discourse-graph-this-page-settings chat-ui-with-context-struct create-struct gen-new-uid get-block-parent-with-order common-chat-struct q llm-chat-settings-page-struct]]
             [ui.render-comp.discourse-suggestions :refer [llm-dg-suggestions-main]]
             [ui.components.cytoscape :refer [cytoscape-main]]
             [reagent.dom :as rd]
@@ -52,6 +52,17 @@
                                chat-block-uid
                                false
                                (p "Created chat block using context menu option, chat block uid" chat-block-uid))))})))
+
+(defn invoke-settings-via-command-palette [] 
+  (let [dialog-open? (r/atom false)]
+    (j/call-in js/window [:roamAlphaAPI :ui :commandPalette :addCommand]
+      (clj->js 
+        {:label "DGAI: Open Settings"
+         :callback (fn [e]
+                     (let [settings-container (.createElement js/document "div")
+                           body (.-body js/document)]
+                       (.appendChild body settings-container)
+                       (rd/render [discourse-graph-this-page-settings dialog-open?] settings-container)))}))))
 
 
 (defn extract-last-substring [s]
@@ -130,5 +141,6 @@
  (start-observing)
   ;; a way to add the chat-llm button
  (add-new-option-to-context-menu)
+ (invoke-settings-via-command-palette)
  (bottom-bar-main)
  (p "Finished initial setup."))
