@@ -55,12 +55,14 @@
 
 (defn invoke-settings-via-command-palette [] 
   (let [dialog-open? (r/atom false)]
+    (p "invoke settings via command palette")
     (j/call-in js/window [:roamAlphaAPI :ui :commandPalette :addCommand]
       (clj->js 
         {:label "DGAI: Open Settings"
          :callback (fn [e]
                      (let [settings-container (.createElement js/document "div")
                            body (.-body js/document)]
+                       (p "append settings container to body")
                        (.appendChild body settings-container)
                        (rd/render [discourse-graph-this-page-settings dialog-open?] settings-container)))}))))
 
@@ -142,5 +144,5 @@
   ;; a way to add the chat-llm button
  (add-new-option-to-context-menu)
  (invoke-settings-via-command-palette)
- (bottom-bar-main)
+ #_(bottom-bar-main)
  (p "Finished initial setup."))
