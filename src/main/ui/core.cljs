@@ -53,12 +53,16 @@
                                false
                                (p "Created chat block using context menu option, chat block uid" chat-block-uid))))})))
 
-(defn invoke-settings-via-command-palette []
-  (j/call-in js/window [:roamAlphaAPI :ui :commandPalette :addCommand]
-   (clj->js 
-     {:label "DGAI: Open Settings"
-      :callback (fn [e]
-                  (discourse-graph-this-page-settings))})))
+(defn invoke-settings-via-command-palette [] 
+  (let [dialog-open? (r/atom false)]
+    (j/call-in js/window [:roamAlphaAPI :ui :commandPalette :addCommand]
+      (clj->js 
+        {:label "DGAI: Open Settings"
+         :callback (fn [e]
+                     (let [settings-container (.createElement js/document "div")
+                           body (.-body js/document)]
+                       (.appendChild body settings-container)
+                       (rd/render [discourse-graph-this-page-settings dialog-open?] settings-container)))}))))
 
 
 (defn extract-last-substring [s]

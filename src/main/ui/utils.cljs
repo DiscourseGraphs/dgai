@@ -1,6 +1,6 @@
 (ns ui.utils
   (:require
-    ["@blueprintjs/core" :as bp :refer [ControlGroup Position Checkbox Tooltip HTMLSelect Button ButtonGroup Card Slider Divider Menu MenuItem Popover MenuDivider]]
+    ["@blueprintjs/core" :as bp :refer [ControlGroup Position Checkbox Tooltip HTMLSelect Button ButtonGroup Card Slider Divider Menu MenuItem Popover MenuDivider Dialog]]
     [cljs.core.async :as async :refer [<! >! go chan put! take! timeout]]
     [cljs.core.async.interop :as asy :refer [<p!]]
     [cljs.reader :as reader]
@@ -1344,7 +1344,7 @@
 
 
 
-(defn discourse-graph-this-page-settings []
+(defn discourse-graph-this-page-settings [dialog-open?]
   (let [dgp-block-uid                (block-has-child-with-str? (title->uid "LLM chat settings") "Quick action buttons")
         dgp-discourse-graph-page-uid (:uid (get-child-with-str dgp-block-uid "Discourse graph this page"))
         dgp-data                     (-> dgp-discourse-graph-page-uid
@@ -1361,16 +1361,29 @@
         dgp-prompt-guide             (r/atom (:prompt-guide dgp-data))
         dgp-pre-prompt               (r/atom (:pre-prompt  dgp-data))
         dgp-ref-relevant-prompt      (r/atom (:ref-relevant-notes-prompt  dgp-data))]
-    [:> Menu
-     {:style {:padding "20px"}
-      :class-name "Classes.POPOVER_DISMISS_OVERRIDE"}
-     [buttons-settings
-      "Discourse graph this page"
-      dgp-discourse-graph-page-uid
-      dgp-default-temp
-      dgp-default-model
-      dgp-default-max-tokens
-      dgp-get-linked-refs?
-      dgp-extract-query-pages?
-      dgp-extract-query-pages-ref?]]
-    ))
+    (reset! dialog-open? true)
+    (fn []
+      [:div
+       [:> Dialog
+        {:is-open @dialog-open?
+         :title "Discourse Graph This Page Settings"
+         :on-close #(reset! dialog-open? false)
+         :style {:width "500px"}}
+        [:div.bp3-dialog-body
+         [:> Menu
+          {:style {:padding "20px"}
+           :class-name "Classes.POPOVER_DISMISS_OVERRIDE"}
+          [buttons-settings
+           "Discourse graph this page"
+           dgp-discourse-graph-page-uid
+           dgp-default-temp
+           dgp-default-model
+           dgp-default-max-tokens
+           dgp-get-linked-refs?
+           dgp-extract-query-pages?
+           dgp-extract-query-pages-ref?]]]
+        [:div.bp3-dialog-footer
+         [:div.bp3-dialog-footer-actions
+          [:> Button
+           {:on-click #(reset! dialog-open? false)}
+           "Close"]]]]])))

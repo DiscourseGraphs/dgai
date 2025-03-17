@@ -759,7 +759,7 @@
                 :align-items     "center"
                 :width           "100%"}
         :fill true}
-       [:> ButtonGroup
+       #_[:> ButtonGroup
         {:class-name "button-with-settings"
          :style {:overflow "hidden"
                  :display "flex"
