@@ -759,53 +759,6 @@
                 :align-items     "center"
                 :width           "100%"}
         :fill true}
-       [:> ButtonGroup
-        {:class-name "button-with-settings"
-         :style {:overflow "hidden"
-                 :display "flex"
-                 :flex-direction "row"
-                 :justify-content "space-between"
-                 :align-items "center"
-                 :flex "1 1 1"}
-         :minimal true}
-        [:div {:class-name "Classes.POPOVER_DISMISS_OVERRIDE"
-               :style {:flex "1 1 1"}}
-         [:> Popover
-               [:> Button {:icon "cog"
-                               :minimal true
-                               :small true
-                               :style {:background-color "#eeebeb"}}]
-          [:> Menu
-           {:style {:padding "20px"}
-            :class-name "Classes.POPOVER_DISMISS_OVERRIDE"}
-           [buttons-settings
-            "Discourse graph this page"
-            dgp-discourse-graph-page-uid
-            dgp-default-temp
-            dgp-default-model
-            dgp-default-max-tokens
-            dgp-get-linked-refs?
-            dgp-extract-query-pages?
-            dgp-extract-query-pages-ref?]
-
-           #_[buttons-settings
-             "Get Context"
-             co-get-context-uid
-             co-default-temp
-             co-default-model
-             co-default-max-tokens
-             co-get-linked-refs?
-             co-extract-query-pages?
-             co-extract-query-pages-ref?]
-           #_[buttons-settings
-            "Get Suggestions"
-            sug-get-context-uid
-            sug-default-temp
-            sug-default-model
-            sug-default-max-tokens
-            sug-get-linked-refs?
-            sug-extract-query-pages?
-            sug-extract-query-pages-ref?]]]]]
 
 
        [discourse-graph-this-page-button
