@@ -499,14 +499,6 @@
      @new-map)))
 
 
-(extract-for-message-array
-  ["sid/left-sidebar/personal-shortcuts"
-   "![](GMGMMG)"
-   "^^Secret message: TESTING 5^^"
-   "1"
-   "Sections" ""]
-  "GM")
-
 (defn generate-roles-for-map [message-map]
   (p "message  map"  message-map)
   (let [body-map (extract-for-message-array
