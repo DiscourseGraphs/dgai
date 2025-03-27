@@ -635,9 +635,7 @@
                                                             (fn [] (reset! active? false))
                                                             500)))}))))))}
           "Reference relevant notes"]]))))
-(-> (:uid (get-child-with-str (block-has-child-with-str? (title->uid "LLM chat settings") "Quick action buttons") "Discourse graph this page"))
-  (pull-deep-block-data)
-  extract-data)
+
 
 (defn bottom-bar-buttons []
   (js/console.time "bottom bar setup")
