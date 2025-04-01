@@ -878,14 +878,14 @@
     (p "MODEL NAME" model)
     (p "calling llm api" messages settings callback)
     (case model
-      :o1         (call-api "https://roam-llm-chat-falling-haze-86.fly.dev/chat-complete"
+      :o1         (call-api "https://discourse-graph-rkcyzrcql-discourse-graphs.vercel.app/api/llm-endpoints/chat-openai"
                     messages new-settings callback chnl)
-      :gpt        (call-api "https://roam-llm-chat-falling-haze-86.fly.dev/chat-complete"
+      :gpt        (call-api "https://discourse-graph-rkcyzrcql-discourse-graphs.vercel.app/api/llm-endpoints/chat-openai"
                             opts)
-      :claude     (call-api "https://roam-llm-chat-falling-haze-86.fly.dev/chat-anthropic"
+      :claude     (call-api "https://discourse-graph-rkcyzrcql-discourse-graphs.vercel.app/api/llm-endpoints/chat-anthropic"
                             opts)
-     :gemini     (call-api "https://roam-llm-chat-falling-haze-86.fly.dev/chat-gemini"
-                           opts)
+      :gemini     (call-api "https://discourse-graph-rkcyzrcql-discourse-graphs.vercel.app/api/llm-endpoints/chat-gemini"
+                            opts)
       (p "Unknown model"))))
 
 
