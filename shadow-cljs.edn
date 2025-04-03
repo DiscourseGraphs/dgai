@@ -7,12 +7,15 @@
   {:target :browser
    :output-dir "public/app"
    :asset-path "/"
+   :build-options {:cache-level :off}
    :http {:port 9630}
    :devtools {:http-root "public"
               :http-port 8080
               :loader-mode :eval
               :use-document-host false}
    :compiler-options {:output-feature-set :es-next-in
+                      :pretty-print true
+                      :source-map-detail-level :all
                       :source-map true
                       :source-map-include-sources-content true}
    :modules {:extension {:init-fn ui.core/init}}}}}
