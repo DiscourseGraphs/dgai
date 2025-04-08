@@ -144,7 +144,7 @@
 (defn init []
  (p "Hello from  chat-llm! ")
  (p "Starting initial setup.")
- (js/console.log "DGAI: BUILD_VERSION" "main-5e34a")
+ (js/console.log "DGAI: BUILD_VERSION" "REPL-TESTING")
  (llm-chat-settings-page-struct)
  ;(append-and-render-component)
   ;; check if the dom already has a chat-llm button, if so render for them
