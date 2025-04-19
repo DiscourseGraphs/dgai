@@ -4,7 +4,7 @@
             [cljs-http.client :as http]
             [cljs.core.async.interop :as asy :refer [<p!]]
             [ui.extract-data.dg :refer [determine-node-type all-dg-nodes get-all-discourse-node-from-akamatsu-graph-for]]
-            ["@blueprintjs/core" :as bp :refer [Checkbox Position Tooltip HTMLSelect Button ButtonGroup Card Slider Divider Menu MenuItem Popover MenuDivider]]
+            ["@blueprintjs/core" :as bp :refer [Checkbox Dialog Position Tooltip HTMLSelect Button ButtonGroup Card Slider Divider Menu MenuItem Popover MenuDivider]]
             [ui.utils :refer [q
                               p
                               button-with-tooltip
@@ -33,9 +33,9 @@
                               create-new-block]]
             [cljs.core.async :as async :refer [<! >! go chan put! take! timeout]]
             [ui.components.cytoscape :refer [llm-suggestions-2 get-node-data suggested-nodes random-uid get-cyto-format-data-for-node cytoscape-component]]
+            [ui.components.discourse-graph-this-page :refer [run-discourse-graph-this-page]]
             [clojure.string :as str]
             [reagent.dom :as rd]))
-
 
 (defn as-group [as-group-loading? selections uid]
   [:div.chk
@@ -322,7 +322,6 @@
 (comment
   (get-discourse-template "discourse-graph/nodes/Source"))
 
-
 (defn template-data-for-node [suggestion-str]
   (let [pre "discourse-graph/nodes/"]
    (cond
@@ -349,7 +348,6 @@
   (extract-parent-breadcrumbs "9gT7Psy9Y")
   (clojure.string/join " > " (map #(str "((" % "))") (take 2 (flatten (extract-parent-breadcrumbs "9gT7Psy9Y"))))))
 
-
 (defn create-discourse-node-with-title [node-title suggestion-ref]
   (p "Create discourse with title" node-title)
   (let [all-breadcrumbs (extract-parent-breadcrumbs (str suggestion-ref))
@@ -374,7 +372,6 @@
           page-uid
           page-uid
           true)))))
-
 
 (defn actions [child m-uid selections cy-el]
   (let [checked (r/atom false)
@@ -475,7 +472,6 @@
         ^{:key (:uid child)}
         [actions child m-uid selections cy-el]))]])
 
-
 (defn discourse-node-suggestions-ui [block-uid]
  #_(p "block uid for chat" block-uid)
  (let [suggestions-data (get-child-with-str block-uid "Suggestions")
@@ -566,10 +562,86 @@
            (str  (:string (first @loading-msgs)))]])]])))
 
 
+(defn load-dg-node-suggestions-ui [block-uid dom-id]
+  (let [parent-el (.getElementById js/document (str dom-id))]
+    (.addEventListener parent-el "mousedown" (fn [e] (.stopPropagation e)))
+    (rd/render [discourse-node-suggestions-ui block-uid] parent-el)))
 
+
+(def node-types [{:id "uid" :label "UID" :color "blue"}
+                 {:id "string" :label "String" :color "green"}
+                 {:id "order" :label "Order" :color "red"}
+                 {:id "children" :label "Children" :color "yellow"}])
+
+
+(defn discourse-node-selector-ui [block-uid dom-id]
+  (let [all-ids (set (map :id node-types))
+        selected-nodes (r/atom all-ids)]
+    (fn []
+      (println "all dg nodes")
+      [:> Card {:elevation 2 
+                :style {:padding "15px" 
+                        :margin-bottom "15px"
+                        :box-shadow "#2e4ba4d1 0px 0px 4px 0px"
+                        :background "aliceblue"}}
+       [:h4 {:style {:margin-top "0px" :margin-bottom "15px"}} 
+         "What discourse nodes do you want the AI to suggest?"]
+       [:div {:style {:display "flex" :flex-direction "column"}}
+        [:div {:style {:display "flex" :flex-direction "column"}}
+         (doall
+           (for [{:keys [id label color]} node-types]
+             ^{:key id}
+             [:div {:style {:display "flex" :align-items "center" :margin-bottom "10px"}}
+              [:> Checkbox {:style {:margin-bottom "0px" :margin-right "10px"}
+                            :checked (contains? @selected-nodes id)
+                            :on-change (fn [e]
+                                        (let [checked (.. e -target -checked)]
+                                          (if checked
+                                            (swap! selected-nodes conj id)
+                                            (swap! selected-nodes disj id))))}]
+              [:span {:style {:display "flex" :align-items "center"}}
+               [:span {:style {:height "10px"
+                               :width "10px"
+                               :background-color color
+                               :border-radius "50%"
+                               :display "inline-block"
+                               :margin-right "8px"}}]
+               label]]))]
+        [:div {:style {:display "flex" 
+                       :justify-content "space-between" 
+                       :margin-top "15px"
+                       :align-items "center"}}
+         [:div {:style {:display "flex"}}
+          [button-with-tooltip
+           "Select all node types"
+           [:> Button {:minimal true
+                       :small true
+                       :style {:margin-right "5px"}
+                       :on-click #(reset! selected-nodes all-ids)} 
+            "Select All"]
+           (.-TOP Position)]
+          [button-with-tooltip
+           "Deselect all node types"
+           [:> Button {:minimal true
+                       :small true
+                       :on-click #(reset! selected-nodes #{})} 
+            "Select None"]
+           (.-TOP Position)]]
+         [:div
+          [button-with-tooltip
+           "Generate discourse node suggestions based on selected node types"
+           [:> Button {:minimal true
+                       :small true
+                       :fill false
+                       :on-click (fn []
+                                   (do
+                                     (run-discourse-graph-this-page)
+                                     (update-block-string block-uid "{{llm-dg-suggestions}}")))}
+            "Generate Suggestions"]
+           (.-TOP Position)]]]]])))
 
 
 (defn llm-dg-suggestions-main [block-uid dom-id]
   (let [parent-el (.getElementById js/document (str dom-id))]
     (.addEventListener parent-el "mousedown" (fn [e] (.stopPropagation e)))
-    (rd/render [discourse-node-suggestions-ui block-uid] parent-el)))
+    (rd/render [discourse-node-selector-ui block-uid dom-id] parent-el)))

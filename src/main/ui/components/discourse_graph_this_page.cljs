@@ -6,7 +6,7 @@
             [reagent.core :as r]
             [ui.utils :refer [extract-from-code-block pull-deep-block-data extract-data uid->eid button-with-tooltip p title->uid q block-has-child-with-str? get-child-with-str get-child-of-child-with-str-on-page get-open-page-uid create-struct gen-new-uid]]
             [ui.extract-data.create-prompts :refer [manual-prompt-guide]]
-            ["@blueprintjs/core" :as bp :refer [Button ButtonGroup]]))
+            ["@blueprintjs/core" :as bp :refer [Button ButtonGroup Checkbox Intent Classes]]))
 
 
 (defn add-response-to-block [block-uid children active?]
@@ -181,7 +181,29 @@
                                              @ref-relevant-prompt)))))))}
         "Discourse graph this page"]]]]))
 
+(comment
+  (block-has-child-with-str? "04-18-2025"  "AI: Discourse node suggestions")
 
+  (q '[:find ?u ?e
+     :where [?e :node/title "April 18th, 2025"]
+     [?e :block/uid ?u]])
+  (-> (ffirst (q '[:find (pull ?e [{:block/children ...} :block/string :block/uid])
+                   :in $ ?uid
+                   :where [?e :block/uid ?uid]]
+                 "ZCzIlz4dQ"))
+     :children
+     last
+     :children
+     first
+     :uid))
+
+(defn get-all-ai-dg-suggestions [page-uid]
+  (let [ s-uid (block-has-child-with-str? page-uid  "AI: Discourse node suggestions") ]
+    (-> (ffirst (q '[:find (pull ?e [{:block/children ...} :block/string :block/uid])
+                                        :in $ ?uid
+                                        :where [?e :block/uid ?uid]]
+                                      s-uid))
+                           :children)))
 
 (defn run-discourse-graph-this-page []
   (let [block-uid                (block-has-child-with-str? (title->uid "LLM chat settings") "Quick action buttons")
@@ -200,9 +222,14 @@
         ref-relevant-prompt      (r/atom (:ref-relevant-notes-prompt  data))]
        (p "clicked discourse graph this page")
        (go
-         (let [suggestion-uid (gen-new-uid)
-               open-page-uid  (<p! (get-open-page-uid))
-               loading-message-uid (gen-new-uid)
+         (let [open-page-uid  (<p! (get-open-page-uid))
+               s-uid (block-has-child-with-str? open-page-uid  "AI: Discourse node suggestions")
+               all-matches (get-all-ai-dg-suggestions open-page-uid)
+               last-match    (-> all-matches
+                                  last
+                                  :children)
+               suggestion-uid (-> (first last-match) :uid)
+               loading-message-uid (-> (rest last-match) :uid)
                dgp-block-uid  (block-has-child-with-str? (title->uid "LLM chat settings") "Quick action buttons")
                dgp-discourse-graph-page-uid (:uid (get-child-with-str dgp-block-uid "Discourse graph this page"))
                model-settings  {:model default-model
@@ -217,8 +244,6 @@
              (create-ref-relevent-prompt))
            (if (not (some? @pre-prompt))
              (do
-               (<! (create-bare-struct open-page-uid suggestion-uid loading-message-uid
-                                       "Setting this up: This graph does not have a pre-prompt yet, setting up the prompt now..."))
                (reset! pre-prompt (<! (manual-prompt-guide dgp-discourse-graph-page-uid loading-message-uid)))
                (<! (get-suggestions-from-llm
                      model-settings
@@ -234,11 +259,6 @@
                      ref-relevant-prompt)))
              (do
                (p "3 pre prompt exists" pre-prompt)
-               (<! (create-bare-struct
-                     open-page-uid
-                     suggestion-uid
-                     loading-message-uid
-                     "8 Asking llm please wait..."))
                (<! (get-suggestions-from-llm
                      model-settings
                      block-uid
@@ -252,3 +272,27 @@
                      model-settings
                      active?
                      @ref-relevant-prompt))))))))
+
+
+(defn create-dg-struct []
+(p "create-dg-struct")
+ (go
+  (let [block-uid                (block-has-child-with-str? (title->uid "LLM chat settings") "Quick action buttons")
+        discourse-graph-page-uid (:uid (get-child-with-str block-uid "Discourse graph this page"))
+        data                     (-> discourse-graph-page-uid
+                                     (pull-deep-block-data)
+                                     extract-data)
+        pre-prompt               (r/atom (:pre-prompt  data))
+        suggestion-uid           (gen-new-uid)
+        open-page-uid            (<p! (get-open-page-uid))
+        loading-message-uid      (gen-new-uid)]
+    (if (not (some? @pre-prompt))
+      (create-bare-struct open-page-uid suggestion-uid loading-message-uid
+                          "Setting this up: This graph does not have a pre-prompt yet, setting up the prompt now...")
+      (do
+        (p "3 pre prompt exists" pre-prompt)
+        (create-bare-struct
+         open-page-uid
+         suggestion-uid
+         loading-message-uid
+         "Asking llm please wait..."))))))
