@@ -561,22 +561,16 @@
           [:div {:style {:padding "5px"}}
            (str  (:string (first @loading-msgs)))]])]])))
 
-
-(def node-types [{:id "uid" :label "UID" :color "blue"}
-                 {:id "string" :label "String" :color "green"}
-                 {:id "order" :label "Order" :color "red"}
-                 {:id "children" :label "Children" :color "yellow"}])
-
 (defn load-dg-node-suggestions-ui [block-uid dom-id]
   (let [parent-el (.getElementById js/document (str dom-id))]
     (.addEventListener parent-el "mousedown" (fn [e] (.stopPropagation e)))
     (rd/render [discourse-node-suggestions-ui block-uid] parent-el)))
 
-
-
 (defn discourse-node-selector-ui [block-uid dom-id]
-  (let [all-ids (set (map :id node-types))
-        selected-nodes (r/atom all-ids)]
+  (let [all-nodes (set (map #(:text %)
+                            (-> (j/call-in js/window [:roamjs :extension :queryBuilder :getDiscourseNodes])
+                                (js->clj :keywordize-keys true))))
+        selected-nodes (r/atom #{})]
     (fn []
       (println "all dg nodes")
       [:> Card {:elevation 2 
@@ -589,24 +583,18 @@
        [:div {:style {:display "flex" :flex-direction "column"}}
         [:div {:style {:display "flex" :flex-direction "column"}}
          (doall
-           (for [{:keys [id label color]} node-types]
-             ^{:key id}
+           (for [node all-nodes]
+             ^{:key node}
              [:div {:style {:display "flex" :align-items "center" :margin-bottom "10px"}}
               [:> Checkbox {:style {:margin-bottom "0px" :margin-right "10px"}
-                            :checked (contains? @selected-nodes id)
+                            :checked (contains? @selected-nodes node)
                             :on-change (fn [e]
                                         (let [checked (.. e -target -checked)]
                                           (if checked
-                                            (swap! selected-nodes conj id)
-                                            (swap! selected-nodes disj id))))}]
+                                            (swap! selected-nodes conj node)
+                                            (swap! selected-nodes disj node))))}]
               [:span {:style {:display "flex" :align-items "center"}}
-               [:span {:style {:height "10px"
-                               :width "10px"
-                               :background-color color
-                               :border-radius "50%"
-                               :display "inline-block"
-                               :margin-right "8px"}}]
-               label]]))]
+               node]]))]
         [:div {:style {:display "flex" 
                        :justify-content "space-between" 
                        :margin-top "15px"
@@ -617,7 +605,7 @@
            [:> Button {:minimal true
                        :small true
                        :style {:margin-right "5px"}
-                       :on-click #(reset! selected-nodes all-ids)} 
+                       :on-click #(reset! selected-nodes all-nodes)}
             "Select All"]
            (.-TOP Position)]
           [button-with-tooltip
@@ -634,12 +622,16 @@
                        :small true
                        :fill false
                        :on-click (fn []
-                                   (do
-                                     (run-discourse-graph-this-page)
-                                     (load-dg-node-suggestions-ui block-uid dom-id)))}
+                                   (println "SELECTED" @selected-nodes)
+                                   (create-new-block
+                                     block-uid
+                                     "last"
+                                     (str/join " " @selected-nodes)
+                                     #())
+                                   (run-discourse-graph-this-page)
+                                   (load-dg-node-suggestions-ui block-uid dom-id))}
             "Generate Suggestions"]
            (.-TOP Position)]]]]])))
-
 
 (defn get-ui-display-type [buid]
   (->> (q '[:find (pull ?e [{:block/children ...} :block/string :block/uid :block/order])
@@ -651,8 +643,6 @@
       (sort-by :order)
       second
       :string))
-
-
 
 (defn llm-dg-suggestions-main [block-uid dom-id]
   (let [ntype (get-ui-display-type block-uid)]

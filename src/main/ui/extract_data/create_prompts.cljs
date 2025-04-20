@@ -141,6 +141,10 @@
     nodes-info))
 
 (comment
+   (map #(:text %)
+        (-> (j/call-in js/window [:roamjs :extension :queryBuilder :getDiscourseNodes])
+            (js->clj :keywordize-keys true)))
+
   (let [all-nodes (-> (j/call-in js/window [:roamjs :extension :queryBuilder :getDiscourseNodes])
                     (js->clj :keywordize-keys true))]
     (extract-node-info all-nodes)

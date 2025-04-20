@@ -230,9 +230,10 @@
                last-match    (-> all-matches
                                   last
                                   :children)
-               suggestion-uid (-> (first last-match) :uid)
-               loading-message-uid (-> (rest last-match) :uid)
-               type-uid (-> (second last-match) :uid)
+               [suggestion-uid
+                type-uid
+                loading-message-uid
+                _] (map #(:uid %) last-match)
                dgp-block-uid  (block-has-child-with-str? (title->uid "LLM chat settings") "Quick action buttons")
                dgp-discourse-graph-page-uid (:uid (get-child-with-str dgp-block-uid "Discourse graph this page"))
                model-settings  {:model default-model
@@ -242,8 +243,10 @@
                                 :extract-query-pages? extract-query-pages?
                                 :extract-query-pages-ref? extract-query-pages-ref?}
                ]
-           (p "1 suggestion uid" suggestion-uid "dgp-block-uid" dgp-block-uid "dgp-discourse-graph-page-uid" dgp-discourse-graph-page-uid)
-           (p "2 pre-prompt" (some? @pre-prompt))
+           (reset! pre-prompt
+                   (str @pre-prompt" <ONLY-SUGGEST-NODES-OF-TYPES> " (:string (last last-match)) "</ONLY-SUGGEST-NODES-OF-TYPES>"))
+           (p "1 suggesti]on uid" suggestion-uid "dgp-block-uid" dgp-block-uid "dgp-discourse-graph-page-uid" dgp-discourse-graph-page-uid)
+           (p "2 pre-prom]pt" (some? @pre-prompt))
            (when (not (some? @ref-relevant-prompt))
              (create-ref-relevent-prompt))
            (if (not (some? @pre-prompt))
