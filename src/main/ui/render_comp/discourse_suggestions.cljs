@@ -562,16 +562,16 @@
            (str  (:string (first @loading-msgs)))]])]])))
 
 
+(def node-types [{:id "uid" :label "UID" :color "blue"}
+                 {:id "string" :label "String" :color "green"}
+                 {:id "order" :label "Order" :color "red"}
+                 {:id "children" :label "Children" :color "yellow"}])
+
 (defn load-dg-node-suggestions-ui [block-uid dom-id]
   (let [parent-el (.getElementById js/document (str dom-id))]
     (.addEventListener parent-el "mousedown" (fn [e] (.stopPropagation e)))
     (rd/render [discourse-node-suggestions-ui block-uid] parent-el)))
 
-
-(def node-types [{:id "uid" :label "UID" :color "blue"}
-                 {:id "string" :label "String" :color "green"}
-                 {:id "order" :label "Order" :color "red"}
-                 {:id "children" :label "Children" :color "yellow"}])
 
 
 (defn discourse-node-selector-ui [block-uid dom-id]
@@ -636,12 +636,30 @@
                        :on-click (fn []
                                    (do
                                      (run-discourse-graph-this-page)
-                                     (update-block-string block-uid "{{llm-dg-suggestions}}")))}
+                                     (load-dg-node-suggestions-ui block-uid dom-id)))}
             "Generate Suggestions"]
            (.-TOP Position)]]]]])))
 
 
+(defn get-ui-display-type [buid]
+  (->> (q '[:find (pull ?e [{:block/children ...} :block/string :block/uid :block/order])
+            :in $ ?uid
+            :where [?e :block/uid ?uid]]
+          buid)
+      ffirst
+      :children
+      (sort-by :order)
+      second
+      :string))
+
+
+
 (defn llm-dg-suggestions-main [block-uid dom-id]
-  (let [parent-el (.getElementById js/document (str dom-id))]
-    (.addEventListener parent-el "mousedown" (fn [e] (.stopPropagation e)))
-    (rd/render [discourse-node-selector-ui block-uid dom-id] parent-el)))
+  (let [ntype (get-ui-display-type block-uid)]
+    (println "NODE TYPE: " ntype)
+    (if (= "Type: Ask" ntype)
+      (do
+        (let [parent-el (.getElementById js/document (str dom-id))]
+          (.addEventListener parent-el "mousedown" (fn [e] (.stopPropagation e)))
+          (rd/render [discourse-node-selector-ui block-uid dom-id] parent-el)))
+      (load-dg-node-suggestions-ui block-uid dom-id))))

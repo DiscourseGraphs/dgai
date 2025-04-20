@@ -4,7 +4,7 @@
             [clojure.string :as str]
             [ui.actions.dg-this-page :refer [create-bare-struct get-llm-response ask-llm prepare-prompt-with-plain-context]]
             [reagent.core :as r]
-            [ui.utils :refer [extract-from-code-block pull-deep-block-data extract-data uid->eid button-with-tooltip p title->uid q block-has-child-with-str? get-child-with-str get-child-of-child-with-str-on-page get-open-page-uid create-struct gen-new-uid]]
+            [ui.utils :refer [extract-from-code-block update-block-string pull-deep-block-data extract-data uid->eid button-with-tooltip p title->uid q block-has-child-with-str? get-child-with-str get-child-of-child-with-str-on-page get-open-page-uid create-struct gen-new-uid]]
             [ui.extract-data.create-prompts :refer [manual-prompt-guide]]
             ["@blueprintjs/core" :as bp :refer [Button ButtonGroup Checkbox Intent Classes]]))
 
@@ -199,11 +199,13 @@
 
 (defn get-all-ai-dg-suggestions [page-uid]
   (let [ s-uid (block-has-child-with-str? page-uid  "AI: Discourse node suggestions") ]
-    (-> (ffirst (q '[:find (pull ?e [{:block/children ...} :block/string :block/uid])
+    (->> (q '[:find (pull ?e [{:block/children ...} :block/string :block/uid])
                                         :in $ ?uid
                                         :where [?e :block/uid ?uid]]
-                                      s-uid))
-                           :children)))
+                                      s-uid)
+         ffirst
+         :children
+         (sort-by :order))))
 
 (defn run-discourse-graph-this-page []
   (let [block-uid                (block-has-child-with-str? (title->uid "LLM chat settings") "Quick action buttons")
@@ -230,6 +232,7 @@
                                   :children)
                suggestion-uid (-> (first last-match) :uid)
                loading-message-uid (-> (rest last-match) :uid)
+               type-uid (-> (second last-match) :uid)
                dgp-block-uid  (block-has-child-with-str? (title->uid "LLM chat settings") "Quick action buttons")
                dgp-discourse-graph-page-uid (:uid (get-child-with-str dgp-block-uid "Discourse graph this page"))
                model-settings  {:model default-model
@@ -237,13 +240,15 @@
                                 :max-tokens default-max-tokens
                                 :get-linked-refs? get-linked-refs?
                                 :extract-query-pages? extract-query-pages?
-                                :extract-query-pages-ref? extract-query-pages-ref?}]
+                                :extract-query-pages-ref? extract-query-pages-ref?}
+               ]
            (p "1 suggestion uid" suggestion-uid "dgp-block-uid" dgp-block-uid "dgp-discourse-graph-page-uid" dgp-discourse-graph-page-uid)
            (p "2 pre-prompt" (some? @pre-prompt))
            (when (not (some? @ref-relevant-prompt))
              (create-ref-relevent-prompt))
            (if (not (some? @pre-prompt))
              (do
+               (update-block-string type-uid "Type: Node Suggestions")
                (reset! pre-prompt (<! (manual-prompt-guide dgp-discourse-graph-page-uid loading-message-uid)))
                (<! (get-suggestions-from-llm
                      model-settings
@@ -259,6 +264,7 @@
                      ref-relevant-prompt)))
              (do
                (p "3 pre prompt exists" pre-prompt)
+               (update-block-string type-uid "Type: Node Suggestions")
                (<! (get-suggestions-from-llm
                      model-settings
                      block-uid
@@ -275,7 +281,7 @@
 
 
 (defn create-dg-struct []
-(p "create-dg-struct")
+ (p "create-dg-struct")
  (go
   (let [block-uid                (block-has-child-with-str? (title->uid "LLM chat settings") "Quick action buttons")
         discourse-graph-page-uid (:uid (get-child-with-str block-uid "Discourse graph this page"))

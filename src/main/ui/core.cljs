@@ -91,8 +91,7 @@
       (let [inner-text (j/get node :innerText)]
        (case inner-text
          "chat-llm"           (main {:block-uid pbuid} "filler" dom-id)
-         "llm-dg-suggestions" (load-dg-node-suggestions-ui  pbuid  dom-id)
-         "ask-node-type-suggestion" (llm-dg-suggestions-main pbuid dom-id)
+         "llm-dg-suggestions" (llm-dg-suggestions-main  pbuid  dom-id)
          "visualise-suggestions"(cytoscape-main  pbuid dom-id))))))
 
 
@@ -101,7 +100,7 @@
                     array-seq
                     (filter #(and
                               (= (j/get % :nodeName) tag-name)
-                              (some #{(j/get % :innerText)} ["chat-llm" "llm-dg-suggestions" "visualise-suggestions" "ask-node-type-suggestion"]))))]
+                              (some #{(j/get % :innerText)} ["chat-llm" "llm-dg-suggestions" "visualise-suggestions"]))))]
     matches))
 
 

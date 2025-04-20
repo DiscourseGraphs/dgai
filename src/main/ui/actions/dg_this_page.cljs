@@ -23,19 +23,21 @@
          struct             (if (nil? already-suggested?)
                               {:s "AI: Discourse node suggestions"
                                :op false
-                               :c [{:s "{{ask-node-type-suggestion}}"
+                               :c [{:s "{{llm-dg-suggestions}}"
                                     :u suggestion-comp-uid
                                     :op false
                                     :c [{:s "Suggestions"
                                          :u suggestion-uid}
+                                        {:s "Type: Ask"}
                                         {:s "Loading messages"
                                          :c [{:s default-msg
                                               :u loading-messages-uid}]}]}]}
-                              {:s "{{ask-node-type-suggestion}}"
+                              {:s "{{llm-dg-suggestions}}"
                                :op false
                                :u suggestion-comp-uid
                                :c [{:s "Suggestions"
                                     :u suggestion-uid}
+                                   {:s "Type: Ask"}
                                    {:s "Loading messages"
                                     :c [{:s default-msg
                                          :u loading-messages-uid}]}]})
