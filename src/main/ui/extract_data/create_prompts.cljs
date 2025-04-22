@@ -140,7 +140,9 @@
     ""
     nodes-info))
 
-(comment
+(comment((-> (j/call-in js/window [:roamjs :extension :queryBuilder :getDiscourseNodes])
+                    (js->clj :keywordize-keys true))-> (j/call-in js/window [:roamjs :extension :queryBuilder :getDiscourseNodes])
+                    (js->clj :keywordize-keys true))
    (map #(:text %)
         (-> (j/call-in js/window [:roamjs :extension :queryBuilder :getDiscourseNodes])
             (js->clj :keywordize-keys true)))
