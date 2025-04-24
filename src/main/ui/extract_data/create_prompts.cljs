@@ -7,9 +7,9 @@
 (defn ask-llm-for-context [prompt]
   (let [messages [{:role    "user"
                    :content prompt}]
-        settings {:model       (get model-mappings "gpt-4-vision")
+        settings {:model       (get model-mappings "claude-3.5-sonnet")
                   :temperature 0.9
-                  :max-tokens  400}
+                  :max-tokens  600}
         out-ch  (chan)]
     (p "***asking llm for context***" prompt)
     (call-llm-api

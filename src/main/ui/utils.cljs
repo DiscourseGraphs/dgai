@@ -677,7 +677,7 @@
                         :c [{:s "Our lab uses Roam Research to organize our collaboration and knowledge sharing related to understanding endocytosis in cells.\n\nWe capture questions (QUE), hypotheses (HYP), and conclusions (CON) on separate pages in Roam. Each page has a title summarizing the key insight. We call these discourse nodes.\n\nFor example, \n\n<example> \na QUE page may ask \"How does the Arp2/3 complex bind to actin filaments?\" This could link to a HYP page proposing a molecular binding mechanism as a hypothesis. The HYP page would in turn link to RES pages that either support or oppose the hypothesis.\n</example>\n\n<your-job>\nBased on the text and images provided, propose some new discourse nodes. This should include several new results, and possibly claims or issues. Candidate results are tagged with [[RES]].\n</your-job>\n\n<instructions>\n\n<exactly-follow-our-lab-ontology>\n1. Result (RES) is a research observation. \n1.1 The title of the result needs to be in past tense.\n1.2 should include an observation, model system, and approach. \n1.3 should focus on observation rather than interpretation.\n1.4 should include the source of your result.\n\nExample for instruction 1: <example> [[RES]] - Increasing membrane tension from 150 pN/µm to 1000 pN/µm in endocytosis simulations increased the cumulative antagonistic force on filament ends - [@cytosim/vary force-dependent capping in endocytosis simulation] </example> \n\n2. Hypothesis (HYP) is a testable claim \n2.1 in present tense. \n\n3. Issue (ISS) is a desired experiment, or \"request for experiment\".\n3.1 in the form of a potential analysis, literature search, simulation, or experiment. \n</exactly-follow-our-lab-ontology>\n\n<expected-response-format>\n- follow the following format, this is format of the following lines `node type - format to follow if the node is of this type`. For each suggestion put it on a new line.\n\n[[RES]] - {content} - [@Source]  // Use format for node type \"Result\"\n[[ISS]] - {content}                // Use format for node type \"Issue\"\n[[CLM]] - {content}                // Use format for node type \"Claim\"\n[[HYP]] - {content}                // Use format for node type \"Hypothesis\"\n\n- <Important-note> replace the `Source` with actual source. </important-note>\n</expected-response-format>\n\n<general-important-instructions>\n1. following the format does not mean degrading your answer quality. We want both follow the format and high quality suggestions. Make sure your {content} draws directly from the text and images provided.\n2. Please only reply with discourse node suggestions, not explanations, keep them high quality. \n</general-important-instructions>\n</instructions>\n\nData from page: \n<data-from-page(s)>\n"}]}
                        {:s "Settings"
                         :c [{:s "Model"
-                             :c [{:s "gpt-4-vision"}]}
+                             :c [{:s "claude-3.5-sonnet"}]}
                             {:s "Temperature"
                              :c [{:s "0.3"}]}
                             {:s "Max tokens"
@@ -811,8 +811,8 @@
    "gpt-4o-mini"       "gpt-4o-mini-2024-07-18"
    "o1"                "o1-preview"
    "o1-mini"           "o1-mini-2024-09-12"
-   "claude-3.5-sonnet" "claude-3-5-sonnet-latest"
-   "claude-3.5-haiku"  "claude-3-5-haiku-latest"
+   "claude-3.5-sonnet" "claude-3-7-sonnet-latest"
+   "claude-3.5-haiku"  "claude-3-7-haiku-latest"
    "claude-3-haiku"    "claude-3-haiku-20240307"
    "gemini-2.0-flash"  "gemini-2.0-flash-exp"
    "gemini-exp"        "gemini-exp-1206"})
