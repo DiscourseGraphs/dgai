@@ -807,12 +807,12 @@
 
 (def model-mappings
   {"gpt-4o"            "gpt-4o-2024-08-06"
-   "gpt-4-vision"      "gpt-4o-2024-08-06"
+   "gpt-4-vision"      "gpt-4.1-2025-04-14"
    "gpt-4o-mini"       "gpt-4o-mini-2024-07-18"
    "o1"                "o1-preview"
    "o1-mini"           "o1-mini-2024-09-12"
-   "claude-3.5-sonnet" "claude-3-5-sonnet-latest"
-   "claude-3.5-haiku"  "claude-3-5-haiku-latest"
+   "claude-3.5-sonnet" "claude-3-7-sonnet-latest"
+   "claude-3.5-haiku"  "claude-3-7-haiku-latest"
    "claude-3-haiku"    "claude-3-haiku-20240307"
    "gemini-2.0-flash"  "gemini-2.0-flash-exp"
    "gemini-exp"        "gemini-exp-1206"})
