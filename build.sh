@@ -71,6 +71,7 @@ const token = process.env.BLOB_READ_WRITE_TOKEN || 'your_blob_token_here';
     try {
       const blob = await put(pathname, content, {
         access: 'public',
+        allowOverwrite: true,
         addRandomSuffix: false,
         token,
       });
