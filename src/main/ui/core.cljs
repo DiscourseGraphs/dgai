@@ -6,10 +6,10 @@
             [ui.render-comp.chat :as rc :refer [main]]
             [ui.render-comp.bottom-bar :refer [bottom-bar-main]]
             [ui.utils :refer [p discourse-graph-this-page-settings chat-ui-with-context-struct create-struct gen-new-uid get-block-parent-with-order common-chat-struct q llm-chat-settings-page-struct]]
-            [ui.render-comp.discourse-suggestions :refer [llm-dg-suggestions-main]]
+            [ui.render-comp.discourse-suggestions :refer [llm-dg-suggestions-main load-dg-node-suggestions-ui]]
             [ui.components.cytoscape :refer [cytoscape-main]]
             [reagent.dom :as rd]
-            [ui.components.discourse-graph-this-page :refer [run-discourse-graph-this-page]]
+            [ui.components.discourse-graph-this-page :refer [create-dg-struct run-discourse-graph-this-page]]
             [cljs.core.async :as async :refer [<! >! go chan put! take! timeout]]
             [cljs.core.async.interop :as asy :refer [<p!]]))
 
@@ -74,7 +74,7 @@
       (clj->js 
         {:label "DGAI: Discourse graph this page"
          :callback (fn [e]
-                     (run-discourse-graph-this-page))})))
+                     (create-dg-struct))})))
 
 
 (defn extract-last-substring [s]
@@ -92,7 +92,7 @@
        (case inner-text
          "chat-llm"           (main {:block-uid pbuid} "filler" dom-id)
          "llm-dg-suggestions" (llm-dg-suggestions-main  pbuid  dom-id)
-         "visualise-suggestions"          (cytoscape-main  pbuid dom-id))))))
+         "visualise-suggestions"(cytoscape-main  pbuid dom-id))))))
 
 
 (defn get-matches [d class-name tag-name]
@@ -143,7 +143,7 @@
 
 (defn init []
  (p "Hello from  chat-llm! ")
- (p "PROD Version: v-acc0dbb, previous version: v-13ca7a")
+ (p "PROD Version: v-acc0dbb, previous version: v-DGAI-User-Select-Type-Latest")
  (p "Starting initial setup.")
  (llm-chat-settings-page-struct)
  ;(append-and-render-component)

@@ -1,5 +1,6 @@
 (ns ui.extract-data.create-prompts
-  (:require [ui.utils :refer [p q update-block-string model-mappings call-llm-api gen-new-uid extract-data create-struct]]
+  (:require [ui.utils :refer [p q update-block-string model-mappings call-llm-api gen-new-uid extract-data create-struct
+                              block-has-child-with-str? title->uid]]
             [cljs.core.async :refer [chan go <! >! put! close!]]
             [applied-science.js-interop :as j]))
 
@@ -94,7 +95,7 @@
                                          node-regex)))]
     (str "a QUE page may ask \""
          some-question
-         "\" This could link to a HYP page proposing a molecular binding mechanism as a hypothesis. The HYP page would in turn link to RES pages that either support or oppose the hypothesis.")))
+         "\" This could link to a HYP page proposing something as a hypothesis. The HYP page would in turn link to RES pages that either support or oppose the hypothesis.")))
 
 
 (defn extract-lab-ontology [nodes-info loading-message-uid]
@@ -141,6 +142,10 @@
     nodes-info))
 
 (comment
+   (map #(:text %)
+        (-> (j/call-in js/window [:roamjs :extension :queryBuilder :getDiscourseNodes])
+            (js->clj :keywordize-keys true)))
+
   (let [all-nodes (-> (j/call-in js/window [:roamjs :extension :queryBuilder :getDiscourseNodes])
                     (js->clj :keywordize-keys true))]
     (extract-node-info all-nodes)
@@ -205,12 +210,40 @@
                    :c [{:s "Pre-prompt"
                         :u prompt-uid
                         :c [{:s combined-prompt
-                             :u pprompt-uid}]}]}]
-       (create-struct
-         struct
-         action-button-uid
-         prompt-uid
-         true
-         #(p "created new prompt for dg this page")
-         1)
+                             :u pprompt-uid}]}]}
+           chat-setting-page-struct   {:s "Discourse graph this page"
+                                       :c [{:s "Prompt"
+                                            :c [{:s "Pre-prompt"
+                                                 :c [{:s combined-prompt}]}]}
+                                           {:s "Settings"
+                                              :c [{:s "Model"
+                                                   :c [{:s "gpt-4-vision"}]}
+                                                  {:s "Temperature"
+                                                   :c [{:s "0.3"}]}
+                                                  {:s "Max tokens"
+                                                   :c [{:s "500"}]}
+                                                  {:s "Get linked refs"
+                                                   :c [{:s "true"}]}
+                                                  {:s "Extract query pages"
+                                                   :c [{:s "true"}]}
+                                                  {:s "Extract query pages ref?"
+                                                   :c [{:s "true"}]}]}]}
+           page-uid (block-has-child-with-str? (title->uid "LLM chat settings") "Quick action buttons")]
+       (if (some? action-button-uid)
+         (create-struct
+           struct
+           action-button-uid
+           prompt-uid
+           true
+           #(p "created new prompt for dg this page")
+           1)
+         (create-struct
+           chat-setting-page-struct
+           page-uid
+           prompt-uid
+           true
+           #(p "created new prompt for dg this page")
+           1))
+
+
        combined-prompt))))

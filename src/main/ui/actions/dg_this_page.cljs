@@ -28,6 +28,7 @@
                                     :op false
                                     :c [{:s "Suggestions"
                                          :u suggestion-uid}
+                                        {:s "Type: Ask"}
                                         {:s "Loading messages"
                                          :c [{:s default-msg
                                               :u loading-messages-uid}]}]}]}
@@ -36,6 +37,7 @@
                                :u suggestion-comp-uid
                                :c [{:s "Suggestions"
                                     :u suggestion-uid}
+                                   {:s "Type: Ask"}
                                    {:s "Loading messages"
                                     :c [{:s default-msg
                                          :u loading-messages-uid}]}]})
