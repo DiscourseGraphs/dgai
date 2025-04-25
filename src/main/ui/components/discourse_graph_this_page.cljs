@@ -210,15 +210,17 @@
 (defn run-discourse-graph-this-page []
   (let [block-uid                (block-has-child-with-str? (title->uid "LLM chat settings") "Quick action buttons")
         discourse-graph-page-uid (:uid (get-child-with-str block-uid "Discourse graph this page"))
-        data                     (-> discourse-graph-page-uid
+        data                     (if (some? discourse-graph-page-uid)
+                                   (-> discourse-graph-page-uid
                                        (pull-deep-block-data)
                                        extract-data)
-        default-model            (r/atom (:model data))
-        default-temp             (r/atom (:temperature data))
-        default-max-tokens       (r/atom (:max-tokens data))
-        get-linked-refs?         (r/atom (:get-linked-refs? data))
-        extract-query-pages?     (r/atom (:extract-query-pages? data))
-        extract-query-pages-ref? (r/atom (:extract-query-pages-ref? data))
+                                   {})
+        default-model            (r/atom (or (:model data) "gpt-4-vision"))
+        default-temp             (r/atom (or (:temperature data) 0.3))
+        default-max-tokens       (r/atom (or (:max-tokens data) 500))
+        get-linked-refs?         (r/atom (or (:get-linked-refs? data) true))
+        extract-query-pages?     (r/atom (or (:extract-query-pages? data) true))
+        extract-query-pages-ref? (r/atom (or (:extract-query-pages-ref? data) true))
         active?                  (r/atom false)
         pre-prompt               (r/atom (:pre-prompt  data))
         ref-relevant-prompt      (r/atom (:ref-relevant-notes-prompt  data))]
@@ -243,16 +245,17 @@
                                 :extract-query-pages? extract-query-pages?
                                 :extract-query-pages-ref? extract-query-pages-ref?}
                ]
-           (reset! pre-prompt
-                   (str @pre-prompt" <ONLY-SUGGEST-NODES-OF-TYPES> " (:string (last last-match)) "</ONLY-SUGGEST-NODES-OF-TYPES>"))
+           (p "PRE PROMPT" @pre-prompt)
            (p "1 suggesti]on uid" suggestion-uid "dgp-block-uid" dgp-block-uid "dgp-discourse-graph-page-uid" dgp-discourse-graph-page-uid)
-           (p "2 pre-prom]pt" (some? @pre-prompt))
+           (p "2 pre-prom]pt" (some? @pre-prompt) loading-message-uid)
            (when (not (some? @ref-relevant-prompt))
              (create-ref-relevent-prompt))
            (if (not (some? @pre-prompt))
              (do
                (update-block-string type-uid "Type: Node Suggestions")
                (reset! pre-prompt (<! (manual-prompt-guide dgp-discourse-graph-page-uid loading-message-uid)))
+               (reset! pre-prompt
+                       (str @pre-prompt" <ONLY-SUGGEST-NODES-OF-TYPES> " (:string (last last-match)) "</ONLY-SUGGEST-NODES-OF-TYPES>"))
                (<! (get-suggestions-from-llm
                      model-settings
                      block-uid
@@ -268,6 +271,8 @@
              (do
                (p "3 pre prompt exists" pre-prompt)
                (update-block-string type-uid "Type: Node Suggestions")
+               (reset! pre-prompt
+                       (str @pre-prompt" <ONLY-SUGGEST-NODES-OF-TYPES> " (:string (last last-match)) "</ONLY-SUGGEST-NODES-OF-TYPES>"))
                (<! (get-suggestions-from-llm
                      model-settings
                      block-uid
@@ -288,9 +293,11 @@
  (go
   (let [block-uid                (block-has-child-with-str? (title->uid "LLM chat settings") "Quick action buttons")
         discourse-graph-page-uid (:uid (get-child-with-str block-uid "Discourse graph this page"))
-        data                     (-> discourse-graph-page-uid
+        data                     (if (some? discourse-graph-page-uid)
+                                   (-> discourse-graph-page-uid
                                      (pull-deep-block-data)
                                      extract-data)
+                                   {})
         pre-prompt               (r/atom (:pre-prompt  data))
         suggestion-uid           (gen-new-uid)
         open-page-uid            (<p! (get-open-page-uid))

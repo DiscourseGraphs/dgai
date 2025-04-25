@@ -143,7 +143,7 @@
 
 (defn init []
  (p "Hello from  chat-llm! ")
- (p "PROD Version: v-acc0dbb, previous version: v-13ca7a")
+ (p "PROD Version: v-acc0dbb, previous version: v-DGAI-User-Select-Type-Latest")
  (p "Starting initial setup.")
  (llm-chat-settings-page-struct)
  ;(append-and-render-component)
