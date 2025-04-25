@@ -72,7 +72,6 @@
      (let [total  (extract-all-discourse-for node)]
        (swap! cnt concat total)))
    (into [] (concat (into [] @cnt) (extract-all-sources)))))
-(count (all-dg-nodes))
 
 (def all-title
   (q '[:find ?u  ?t
@@ -365,7 +364,6 @@
 (defn get-todays-uid []
   (->> (js/Date.)
     (j/call-in js/window [:roamAlphaAPI :util :dateToPageUid])))
-(get-todays-uid)
 
 (defn gen-new-uid []
   (j/call-in js/window [:roamAlphaAPI :util :generateUID]))
@@ -851,7 +849,6 @@
       :threshold (get safety-map dangerous-content)}]))
 
 
-(goog-define url-endpoint "")
 
 (defn call-api 
   ([url  {:keys [messages settings callback chnl]}]
@@ -910,7 +907,6 @@
                       (reset! token-count-atom new-count)
                       (p "*New Token count* :" new-count))))))
 
-(get-child-of-child-with-str-on-page "LLM chat settings" "Quick action buttons" "System prompt" "Pre prompt")
 
 (defn create-alternate-messages [messages initial-context pre]
   (let [pre-prompt          (str (-> (get-child-of-child-with-str-on-page "LLM chat settings" "Quick action buttons" "System prompt" "Pre prompt")
