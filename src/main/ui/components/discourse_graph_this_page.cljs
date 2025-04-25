@@ -262,7 +262,7 @@
                      suggestion-uid
                      active?
                      @pre-prompt))
-               (<! (get-refs-for-all-suggestions
+               #_(<! (get-refs-for-all-suggestions
                      open-page-uid
                      suggestion-uid
                      model-settings
@@ -280,7 +280,7 @@
                      active?
                      @pre-prompt))
                (p "14 get refs for all")
-               (<! (get-refs-for-all-suggestions
+               #_(<! (get-refs-for-all-suggestions
                      open-page-uid
                      suggestion-uid
                      model-settings
