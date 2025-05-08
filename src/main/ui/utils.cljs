@@ -803,6 +803,9 @@
 
 ;; ---- ai specific ----
 
+()
+
+
 (def model-mappings
   {"gpt-4o"            "gpt-4o-2024-08-06"
    "gpt-4-vision"      "gpt-4.1-2025-04-14"
